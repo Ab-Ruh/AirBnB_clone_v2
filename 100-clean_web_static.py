@@ -2,92 +2,80 @@
 """
 removes archives which are out of date
 """
-import os
+from fabric.api import *
 from datetime import datetime
-from fabric.api import env, local, put, run, runs_once
+import os
+
+env.hosts = ['100.24.74.170', '18.234.80.72']
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/id_rsa'
 
 
-env.hosts = ['34.138.32.248', '3.226.74.205']
-
-
-@runs_once
 def do_pack():
-    """Archives the static files."""
-    if not os.path.isdir("versions"):
-        os.mkdir("versions")
-    cur_time = datetime.now()
-    output = "versions/web_static_{}{}{}{}{}{}.tgz".format(
-        cur_time.year,
-        cur_time.month,
-        cur_time.day,
-        cur_time.hour,
-        cur_time.minute,
-        cur_time.second
-    )
-    try:
-        print("Packing web_static to {}".format(output))
-        local("tar -cvzf {} web_static".format(output))
-        archize_size = os.stat(output).st_size
-        print("web_static packed: {} -> {} Bytes".format(output, archize_size))
-    except Exception:
-        output = None
-    return output
+    """
+    Generates a .tgz archive from the contents of the web_static folder
+    """
+    local("mkdir -p versions")
+
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d%H%M%S")
+
+    archive_name = "web_static_{}.tgz".format(timestamp)
+
+    result = local("tar -czvf versions/{} web_static".format(archive_name))
+
+    if result.succeeded:
+        return "versions/{}".format(archive_name)
+    else:
+        return None
 
 
 def do_deploy(archive_path):
-    """Deploys the static files to the host servers.
-    Args:
-        archive_path (str): The path to the archived static files.
     """
-    if not os.path.exists(archive_path):
+    Distributes an archive to a web server
+    """
+    if not exists(archive_path):
         return False
-    file_name = os.path.basename(archive_path)
-    folder_name = file_name.replace(".tgz", "")
-    folder_path = "/data/web_static/releases/{}/".format(folder_name)
-    success = False
+
     try:
-        put(archive_path, "/tmp/{}".format(file_name))
-        run("mkdir -p {}".format(folder_path))
-        run("tar -xzf /tmp/{} -C {}".format(file_name, folder_path))
-        run("rm -rf /tmp/{}".format(file_name))
-        run("mv {}web_static/* {}".format(folder_path, folder_path))
-        run("rm -rf {}web_static".format(folder_path))
-        run("rm -rf /data/web_static/current")
-        run("ln -s {} /data/web_static/current".format(folder_path))
-        print('New version deployed!')
-        success = True
-    except Exception:
-        success = False
-    return success
+        archive_name = archive_path.split('/')[-1]
+        archive_no_ext = archive_name.split('.')[0]
+        target_path = "/data/web_static/releases/" + archive_no_ext
+
+        put(archive_path, '/tmp', use_sudo=True)
+        run('sudo mkdir -p {}'.format(target_path))
+        run('sudo tar -xzf /tmp/{} -C {}'.format(archive_name, target_path))
+        run('sudo rm /tmp/{}'.format(archive_name))
+        run('sudo mv {}/web_static/* {}/'.format(target_path, target_path))
+        run('sudo rm -rf {}/web_static'.format(target_path))
+        run('sudo rm -rf /data/web_static/current')
+        run('sudo ln -s {} /data/web_static/current'.format(target_path))
+        return True
+    except Exception as e:
+        return False
 
 
 def deploy():
-    """Archives and deploys the static files to the host servers.
     """
-    archive_path = do_pack()
-    return do_deploy(archive_path) if archive_path else False
+    Creates and distributes an archive to web servers
+    """
+    path = do_pack()
+    if path is None:
+        return False
+    return do_deploy(path)
 
 
 def do_clean(number=0):
-    """Deletes out-of-date archives of the static files.
-    Args:
-        number (Any): The number of archives to keep.
     """
-    archives = os.listdir('versions/')
-    archives.sort(reverse=True)
-    start = int(number)
-    if not start:
-        start += 1
-    if start < len(archives):
-        archives = archives[start:]
+    removes archives
+    """
+    number = int(number)
+    if number == 0:
+        number = 2
     else:
-        archives = []
-    for archive in archives:
-        os.unlink('versions/{}'.format(archive))
-    cmd_parts = [
-        "rm -rf $(",
-        "find /data/web_static/releases/ -maxdepth 1 -type d -iregex",
-        " '/data/web_static/releases/web_static_.*'",
-        " | sort -r | tr '\\n' ' ' | cut -d ' ' -f{}-)".format(start + 1)
-    ]
-    run(''.join(cmd_parts))
+        number += 1
+
+    local('cd versions; ls -t | tail -n +{} | xargs rm -rf'.format(number))
+    releases_path = '/data/web_static/releases'
+    run('cd {}; ls -t | tail -n +{} | xargs rm -rf'
+        .format(releases_path, number))
