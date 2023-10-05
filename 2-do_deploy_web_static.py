@@ -8,7 +8,7 @@ from datetime import datetime
 from os.path import exists
 import argparse
 
-env.hosts = ['100.24.74.170', '18.234.80.72']
+env.hosts = ['100.25.150.188', '34.229.186.16']
 env.user = 'ubuntu'
 env.key_filename = '~/.ssh/id_rsa'
 
