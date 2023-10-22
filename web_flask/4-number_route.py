@@ -20,7 +20,7 @@ def hbnb():
 
 @app.route('/c/<text>', strict_slashes=False)
 def c(text):
-    """Display 'C ' followed by the value of the text variable (replace underscores with spaces)."""
+    """Display 'C ' followed by the value of the text variable."""
     text = text.replace('_', ' ')
     return 'C {}'.format(text)
 
@@ -28,7 +28,7 @@ def c(text):
 @app.route('/python', strict_slashes=False)
 @app.route('/python/<text>', strict_slashes=False)
 def python(text='is cool'):
-    """Display 'Python ' followed by the value of the text variable (replace underscores with spaces)."""
+    """Display 'Python ' followed by the value of the text variable."""
     text = text.replace('_', ' ')
     return 'Python {}'.format(text)
 
