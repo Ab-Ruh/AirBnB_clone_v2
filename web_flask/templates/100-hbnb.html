@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HBNB</title>
+    <link rel="stylesheet" href="/static/styles/3-footer.css" type="text/css">
+    <link rel="stylesheet" href="/static/styles/3-header.css" type="text/css">
+    <link rel="stylesheet" href="/static/styles/4-common.css" type="text/css">
+    <link rel="stylesheet" href="/static/styles/6-filters.css" type="text/css">
+    <link rel="stylesheet" href="/static/styles/8-places.css" type="text/css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/images/logo.png" alt="HBNB logo">
+        </div>
+        <nav>
+            <ul class="filters">
+                <li>
+                    <h3>States</h3>
+                    <ul class="popover">
+                        {% for state in states %}
+                            <li>
+                                <label class="popover" for="state-{{ state.id }}">
+                                    <input type="checkbox" class="popover" id="state-{{ state.id }}" data-name="{{ state.name }}">
+                                    {{ state.name }}
+                                </label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li>
+                    <h3>Amenities</h3>
+                    <ul class="popover">
+                        {% for amenity in amenities %}
+                            <li>
+                                <label class="popover" for="amenity-{{ amenity.id }}">
+                                    <input type="checkbox" class="popover" id="amenity-{{ amenity.id }}" data-name="{{ amenity.name }}">
+                                    {{ amenity.name }}
+                                </label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <section class="places">
+        {% for place in places %}
+            <article>
+                <div class="place-price">
+                    <div class="price_by_night">${{ place.price_by_night }}</div>
+                </div>
+                <div class="place-name">
+                    <h2>{{ place.name }}</h2>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+    <footer>
+        <p>© 2023 HBNB. All rights reserved.</p>
+    </footer>
+</body>
+</html>
