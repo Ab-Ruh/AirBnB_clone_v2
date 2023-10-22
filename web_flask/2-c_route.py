@@ -20,7 +20,7 @@ def hbnb():
 
 @app.route('/c/<text>', strict_slashes=False)
 def c_is_fun(text):
-    """Display 'C ' followed by the value of the text variable (replace underscores with spaces)."""
+    """Display 'C ' followed by the value of the text variable."""
     text = text.replace('_', ' ')
     return 'C {}'.format(text)
 
