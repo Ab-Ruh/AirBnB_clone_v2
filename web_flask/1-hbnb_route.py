@@ -11,6 +11,7 @@ def hello_hbnb():
     """Display 'Hello HBNB!' when accessing the root URL."""
     return 'Hello HBNB!'
 
+
 @app.route('/hbnb', strict_slashes=False)
 def hbnb():
     """Display 'HBNB' when accessing the /hbnb URL."""
